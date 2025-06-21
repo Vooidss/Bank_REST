@@ -1,5 +1,7 @@
 package com.example.bankcards.config;
 
+import com.example.bankcards.entity.Role;
+import com.example.bankcards.security.SecurityConstants;
 import com.example.bankcards.security.filters.JwtAuthenticationFilter;
 
 import com.example.bankcards.service.UserDetailService;
@@ -9,17 +11,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -36,12 +41,8 @@ public class SecurityConfig {
                 httpSecurity
                         .csrf(AbstractHttpConfigurer::disable)
                         .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/api/v1/auth/**",
-                                        "/v3/api-docs.yaml/**",
-                                        "/v3/api-docs/**",
-                                        "/docs/openapi.yaml",
-                                        "/swagger-ui.html",
-                                        "/swagger-ui/**").permitAll()
+                                .requestMatchers(SecurityConstants.PUBLIC_PATHS).permitAll()
+                                .requestMatchers(SecurityConstants.ADMIN_PATHS).hasRole(Role.ADMIN.getRoleName())
                                 .anyRequest().authenticated()
                         )
                         .sessionManagement(session -> session

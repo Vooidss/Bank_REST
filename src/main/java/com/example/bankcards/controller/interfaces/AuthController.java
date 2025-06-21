@@ -3,6 +3,7 @@ package com.example.bankcards.controller.interfaces;
 import com.example.bankcards.dto.Requests.LoginRequest;
 import com.example.bankcards.dto.Requests.RegisterRequest;
 import com.example.bankcards.dto.Responses.JwtResponse;
+import com.example.bankcards.dto.Responses.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,13 +34,13 @@ public interface AuthController {
                             description = "Неверный логин или пароль",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = com.example.bankcards.dto.Responses.ApiResponse.class)
+                                    schema = @Schema(implementation = Response.class)
                             )
                     )
             }
     )
     @PostMapping("/login")
-    ResponseEntity<com.example.bankcards.dto.Responses.ApiResponse> login(@RequestBody LoginRequest request);
+    ResponseEntity<Response> login(@RequestBody LoginRequest request);
 
     @Operation(
             summary = "Регистрация пользователя",
@@ -58,11 +59,11 @@ public interface AuthController {
                             description = "Не хватает либо логина либо пароля",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = com.example.bankcards.dto.Responses.ApiResponse.class)
+                                    schema = @Schema(implementation = Response.class)
                             )
                     )
             }
     )
     @PostMapping("/register")
-    ResponseEntity<com.example.bankcards.dto.Responses.ApiResponse> register(@RequestBody RegisterRequest request);
+    ResponseEntity<Response> register(@RequestBody RegisterRequest request);
 }

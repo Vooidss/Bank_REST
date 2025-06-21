@@ -3,6 +3,7 @@ package com.example.bankcards.security.filters;
 import com.example.bankcards.security.JwtComponent;
 import com.example.bankcards.service.UserDetailService;
 import com.example.bankcards.service.UserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,40 +26,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailService userDetailService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String jwt = authHeader.substring(7);
-        String userName = jwtComponent.extractUserName(jwt);
+        String username;
+        try {
+            username = jwtComponent.extractUserName(jwt);
+        } catch (JwtException | IllegalArgumentException ex) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "JWT токен не корректен: " + ex.getMessage());
+            return;
+        }
 
-        //TODO: ПРОВЕРКА НА заблокированные токены
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailService.loadUserByUsername(username);
 
-        if (
-                SecurityContextHolder.getContext().getAuthentication() == null
-        ) {
-            UserDetails userDetails =
-                    this.userDetailService.loadUserByUsername(userName);
+            boolean valid;
+            try {
+                valid = jwtComponent.isTokenValid(jwt, userDetails);
+            } catch (JwtException ex) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "JWT токен не корректен: " + ex.getMessage());
+                return;
+            }
 
-            if (jwtComponent.isTokenValid(jwt, userDetails)) {
+            if (valid) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                                userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
             } else {
-                filterChain.doFilter(request, response);
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "JWT token is not valid for this user");
+                return;
             }
         }
+
+        // И только здесь продолжаем цепочку
+        filterChain.doFilter(request, response);
     }
 }

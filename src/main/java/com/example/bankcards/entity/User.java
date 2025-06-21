@@ -3,6 +3,8 @@ package com.example.bankcards.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -35,11 +37,16 @@ public class User {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            mappedBy = "user",
+            mappedBy = "owner",
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    List<BankCart> bankCartList;
+    List<BankCard> bankCartList;
+
+    @PrePersist
+    public void prePersist() {
+        roles = Set.of(Role.USER);
+    }
 }
 
 

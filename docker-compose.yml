@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: BankRest
+      POSTGRES_PASSWORD: BankRest
+      POSTGRES_DB: BankRest
+    ports:
+      - "5432:5432"
+    networks:
+      - bank-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5433:5433"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - bank-network
+    depends_on:
+      - postgres
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bank-rest:latest
+    container_name: bank-rest-app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8060:8060"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      CARD_SECRET: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
+      JWT_SECRET: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/BankRest
+      SPRING_DATASOURCE_USERNAME: BankRest
+      SPRING_DATASOURCE_PASSWORD: BankRest
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+    networks:
+      - bank-network
+
+volumes:
+  db-data:
+
+networks:
+  bank-network:
+    driver: bridge

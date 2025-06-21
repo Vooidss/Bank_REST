@@ -1,22 +1,15 @@
 package com.example.bankcards.security;
 
+import com.example.bankcards.util.DecoderKey;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -29,12 +22,19 @@ public class JwtComponent {
     @Value("${auth.jwt.expiration}")
     private long jwtExpiration;
 
+    private SecretKey key;
+
+    @PostConstruct
+    private void decryptedKey(){
+        key = DecoderKey.fromBase64(jwtSecret).getSecretKey();
+    }
+
     public String generateJwtToken(String username){
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSigningKey())
+                .signWith(key)
                 .compact();
     }
 
@@ -65,16 +65,10 @@ public class JwtComponent {
 
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    private SecretKey getSigningKey() {
-        System.out.println(jwtSecret);
-        byte[] key = Base64.getDecoder().decode(jwtSecret);
-        return Keys.hmacShaKeyFor(key);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
