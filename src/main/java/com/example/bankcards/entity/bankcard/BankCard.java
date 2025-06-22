@@ -1,5 +1,6 @@
-package com.example.bankcards.entity;
+package com.example.bankcards.entity.bankcard;
 
+import com.example.bankcards.entity.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Pattern;
@@ -19,8 +20,8 @@ public class BankCard {
     private Long id;
 
     @Pattern(
-            regexp = "^\\*{4}-\\*{4}-\\*{4}-\\d{4}$",
-            message = "Номер карты должен быть в формате XXXX-XXXX-XXXX-XXXX"
+            regexp = "^\\*{4} \\*{4} \\*{4} \\d{4}$",
+            message = "Номер карты должен быть в формате XXXX XXXX XXXX XXXX"
     )
     @Column(name = "cardNumber", nullable = false)
     private String cardNumber;

@@ -15,10 +15,15 @@ public final class SecurityConstants {
 
     public static final String[] ADMIN_PATHS = {
             "/api/v1/card/create",
-            "/api/v1/card/getAll",
+            "/api/v1/card/all",
+            "/api/v1/card/all/{userId}",
             "/api/v1/card/blocked/{id}",
             "/api/v1/card/activate/{id}",
-            "/api/v1/card/{id}"
+            "/api/v1/card/{id}",
+            "/api/v1/user/{id}",
+            "/api/v1/user/all",
+            "/api/v1/transfer/{id}",
+            "/api/v1/transfer/all"
     };
 
 }

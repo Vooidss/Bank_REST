@@ -27,7 +27,7 @@ public final class CardEncryptionUtil {
         String trimmed = (base64Key != null) ? base64Key.trim() : null;
         checkIsEmpty(trimmed);
 
-        this.secretKey = EncoderKey.fromBase64(trimmed);
+        this.secretKey = EncoderKey.fromBase64ToAes(trimmed);
     }
 
     public String maskRaw(String rawCardNumber) {
@@ -38,7 +38,7 @@ public final class CardEncryptionUtil {
             throw new IllegalArgumentException("Неккоретный номер карты. Должно быть минимум 4 цифры");
         }
         String last4 = digits.substring(digits.length() - 4);
-        return "****-****-****-" + last4;
+        return "**** **** **** " + last4;
     }
 
     public String maskEncrypted(String encryptedCardNumber) {

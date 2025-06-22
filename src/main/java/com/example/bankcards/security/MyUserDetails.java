@@ -1,7 +1,6 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.entity.Role;
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.user.User;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

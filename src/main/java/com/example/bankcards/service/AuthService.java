@@ -5,8 +5,7 @@ import com.example.bankcards.dto.Requests.LoginRequest;
 import com.example.bankcards.dto.Requests.RegisterRequest;
 import com.example.bankcards.dto.Responses.Response;
 import com.example.bankcards.dto.Responses.JwtResponse;
-import com.example.bankcards.entity.Role;
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.user.User;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtComponent;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
 
 @Service
 public class AuthService {

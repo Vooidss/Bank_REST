@@ -1,10 +1,9 @@
-package com.example.bankcards.entity;
+package com.example.bankcards.entity.user;
 
+import com.example.bankcards.entity.bankcard.BankCard;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 

@@ -1,11 +1,11 @@
-package com.example.bankcards.entity;
+package com.example.bankcards.entity.bankcard;
 
 public enum Status {
     ACTIVE("Активна"),
     BLOCKED("Заблокирована"),
     EXPIRED("Истек срок");
 
-    String status;
+    final String status;
 
     Status(String status){
         this.status = status;

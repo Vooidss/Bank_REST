@@ -1,13 +1,11 @@
 package com.example.bankcards.config;
 
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,18 +30,34 @@ import org.springframework.context.annotation.Configuration;
 
 
     @Bean
-    public GroupedOpenApi cardsApi() {
+    public GroupedOpenApi cardApi() {
         return GroupedOpenApi.builder()
-                .group("cards")
+                .group("card")
                 .pathsToMatch("/api/v1/card/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi authenticationApi() {
+        return GroupedOpenApi.builder()
+                .group("authentication")
+                .pathsToMatch("/api/v1/auth/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi userApi() {
+        return GroupedOpenApi.builder()
+                .group("user")
+                .pathsToMatch("/api/v1/user/**")
                 .build();
     }
 
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
-                .group("auth")
-                .pathsToMatch("/api/v1/auth/**")
+                .group("transfer")
+                .pathsToMatch("/api/v1/transfer/**")
                 .build();
     }
 }

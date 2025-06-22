@@ -6,7 +6,7 @@ import java.util.Base64;
 
 public class EncoderKey {
 
-    public static SecretKey fromBase64(String base64Key) {
+    public static SecretKey fromBase64ToAes(String base64Key) {
         if (base64Key == null || base64Key.trim().isEmpty()) {
             throw new IllegalArgumentException("Secret key must not be null or empty");
         }

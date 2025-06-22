@@ -1,17 +1,18 @@
 package com.example.bankcards.config;
 
-import com.example.bankcards.entity.Role;
+import com.example.bankcards.entity.user.Role;
+import com.example.bankcards.security.RestAuthenticationEntryPoint;
 import com.example.bankcards.security.SecurityConstants;
 import com.example.bankcards.security.filters.JwtAuthenticationFilter;
 
 import com.example.bankcards.service.UserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,15 +25,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true,  prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailService userDetailService;
+    private final RestAuthenticationEntryPoint restAuthEntryPoint;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailService userDetailService) {
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailService userDetailService, RestAuthenticationEntryPoint restAuthEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailService = userDetailService;
+        this.restAuthEntryPoint = restAuthEntryPoint;
     }
 
     @Bean
@@ -49,6 +53,9 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         )
                         .authenticationProvider(customAuthenticationProvider())
+//                        .exceptionHandling(ex -> ex
+//                                .authenticationEntryPoint(restAuthEntryPoint)
+//                        )
                         .addFilterBefore(
                                 jwtAuthenticationFilter,
                                 UsernamePasswordAuthenticationFilter.class

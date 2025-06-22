@@ -1,6 +1,6 @@
 package com.example.bankcards.dto;
 
-import com.example.bankcards.entity.Status;
+import com.example.bankcards.entity.bankcard.Status;
 
 import lombok.Data;
 
@@ -15,6 +15,8 @@ public class BankCardDTO {
     private LocalDate expirationDate;
 
     private Status status;
+
+    private String cardNumber;
 
     private BigDecimal balance;
 }

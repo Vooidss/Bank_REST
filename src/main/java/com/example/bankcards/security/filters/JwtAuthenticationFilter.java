@@ -1,6 +1,8 @@
 package com.example.bankcards.security.filters;
 
+import com.example.bankcards.exception.JwtAuthenticationException;
 import com.example.bankcards.security.JwtComponent;
+import com.example.bankcards.security.SecurityConstants;
 import com.example.bankcards.service.UserDetailService;
 import com.example.bankcards.service.UserService;
 import io.jsonwebtoken.JwtException;
@@ -14,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -42,9 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             username = jwtComponent.extractUserName(jwt);
         } catch (JwtException | IllegalArgumentException ex) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "JWT токен не корректен: " + ex.getMessage());
-            return;
+            throw new JwtAuthenticationException("JWT токен не корректен: " + ex.getMessage());
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -54,9 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 valid = jwtComponent.isTokenValid(jwt, userDetails);
             } catch (JwtException ex) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                        "JWT токен не корректен: " + ex.getMessage());
-                return;
+                throw new JwtAuthenticationException("JWT токен не корректен: " + ex.getMessage());
             }
 
             if (valid) {
@@ -68,13 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                        "JWT token is not valid for this user");
-                return;
+                throw new JwtAuthenticationException("JWT токен не валиден");
             }
         }
 
-        // И только здесь продолжаем цепочку
         filterChain.doFilter(request, response);
     }
 }
