@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 002-create-user-roles-table
-      author: egorick
+      id: "2"
+      author: "egorick"
       changes:
         - createTable:
             tableName: user_roles
@@ -16,13 +16,19 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-                    checkConstraint: "role IN ('USER','ADMIN')"
         - addPrimaryKey:
             tableName: user_roles
-            columnNames: user_id, role
+            columnNames: user_id,role
+            constraintName: pk_user_roles
         - addForeignKeyConstraint:
-            constraintName: fk_user_roles_user
             baseTableName: user_roles
             baseColumnNames: user_id
             referencedTableName: users
             referencedColumnNames: id
+            constraintName: fk_user_roles_user_id
+        - sql:
+            dbms: postgresql
+            sql: >
+              ALTER TABLE user_roles
+              ADD CONSTRAINT chk_user_roles_role
+              CHECK (role IN ('USER','ADMIN'));

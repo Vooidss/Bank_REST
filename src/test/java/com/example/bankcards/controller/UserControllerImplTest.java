@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -53,7 +54,7 @@ class UserControllerImplTest {
         UserDTO u = new UserDTO();
         u.setUsername("user1");
         u.setPassword("pass1");
-        u.setRole(Role.USER);
+        u.setRoles(Set.of(Role.USER));
         Page<UserDTO> page = new PageImpl<>(List.of(u), PageRequest.of(1, 2), 1);
         given(userService.getUserByUsername(1, 2)).willReturn(page);
 
@@ -61,7 +62,7 @@ class UserControllerImplTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].username").value("user1"))
                 .andExpect(jsonPath("$.data.content[0].password").value("pass1"))
-                .andExpect(jsonPath("$.data.content[0].role").value("USER"))
+                .andExpect(jsonPath("$.data.content[0].roles").value("USER"))
                 .andExpect(jsonPath("$.message").value("Пользователи успешно вовзращены"));
     }
 
@@ -71,14 +72,14 @@ class UserControllerImplTest {
         UserDTO u = new UserDTO();
         u.setUsername("user2");
         u.setPassword("pass2");
-        u.setRole(Role.ADMIN);
+        u.setRoles(Set.of(Role.ADMIN));
         given(userService.getUserById(5L)).willReturn(u);
 
         mvc.perform(get("/api/v1/user/5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.username").value("user2"))
                 .andExpect(jsonPath("$.data.password").value("pass2"))
-                .andExpect(jsonPath("$.data.role").value("ADMIN"))
+                .andExpect(jsonPath("$.data.roles").value("ADMIN"))
                 .andExpect(jsonPath("$.message").value("Пользователи успешно вовзращены"));
     }
 
@@ -88,7 +89,7 @@ class UserControllerImplTest {
         UserDTO u = new UserDTO();
         u.setUsername("updatedUser");
         u.setPassword("newPass");
-        u.setRole(Role.USER);
+        u.setRoles(Set.of(Role.USER));
         given(userService.update(5L, u)).willReturn(u);
 
         mvc.perform(patch("/api/v1/user/5")
@@ -97,7 +98,7 @@ class UserControllerImplTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.username").value("updatedUser"))
                 .andExpect(jsonPath("$.data.password").value("newPass"))
-                .andExpect(jsonPath("$.data.role").value("USER"))
+                .andExpect(jsonPath("$.data.roles").value("USER"))
                 .andExpect(jsonPath("$.message").value("Пользователи успешно обновлён"));
     }
 

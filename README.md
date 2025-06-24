@@ -11,6 +11,7 @@
 4. [Быстрый старт с Docker Compose](#быстрый-старт-с-docker-compose)
 5. [Локальный запуск без Docker (профиль `dev`)](#локальный-запуск-без-docker-профиль-dev)
 6. [Документация API](#документация-api)
+7. [Уже созданные пользователи](#уже-созданные-пользователи)
 
 ---
 
@@ -61,7 +62,12 @@ Bank_REST
 3. **Проверить сервисы**  
    - API: `http://localhost:8060`  
    - pgAdmin: `http://localhost:5433`  
-     — логин: `BankRest`, пароль: `BankRest`
+     — логин: `admin@admin.com`, пароль: `admin`
+4. **Удалить все образы и контейнер**
+   ```bash
+    docker-compose down --rmi all -v
+   ```
+
 
 ### Состав контейнеров
 
@@ -110,5 +116,15 @@ mvn verify
 - **OpenAPI (YAML):** `docs/openapi.yaml`  
 - **Swagger UI:** `http://localhost:8060/swagger-ui.html`
 
+## Уже созданные пользователи
+
+   По дефолту уже созданы 2 пользователя: Админ и Обычный пользователь.
+
+- **Admin**
+  - Логин: `admin`
+  - Пароль: `admin`
+- **User:**
+  - Логин: `user`
+  - Пароль: `user`
 ---
 

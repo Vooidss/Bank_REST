@@ -15,6 +15,8 @@ public class CardRequestDTO {
 
     private Long requestId;
 
+    private Long initiatorId;
+
     private Long cardId;
 
     private String status;

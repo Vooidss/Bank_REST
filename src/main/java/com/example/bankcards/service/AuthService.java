@@ -8,13 +8,18 @@ import com.example.bankcards.dto.Responses.JwtResponse;
 import com.example.bankcards.entity.user.User;
 import com.example.bankcards.exception.InvalidCredentialsException;
 import com.example.bankcards.exception.MissingCredentialsException;
+import com.example.bankcards.exception.UserAlreadyExistsException;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtComponent;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,13 +42,19 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Cacheable(cacheNames = "login", key = "#request.userName")
     public JwtDTO login(LoginRequest request){
+        if(request.getUserName() == null && request.getPassword() == null){
+            throw new MissingCredentialsException("Отстутвует логин или пароль");
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
             );
 
         }catch (AuthenticationException e) {
+            log.error(e.getMessage());
             throw new InvalidCredentialsException("Неверные логин или пароль");
         }
 
@@ -56,6 +67,7 @@ public class AuthService {
                 .build();
     }
 
+    @Cacheable(cacheNames = "register", key = "#request.userName")
     public JwtDTO register(RegisterRequest request) {
         if(request.getUserName() == null && request.getPassword() == null){
             throw new MissingCredentialsException("Отстутвует логин или пароль");
@@ -67,8 +79,11 @@ public class AuthService {
                 .bankCartList(Collections.emptyList())
                 .build();
 
-        userRepository.save(user);
-
+        try {
+            userRepository.save(user);
+        }catch (DataAccessException e){
+            throw new UserAlreadyExistsException("Пользователь с таким логином уже зарегестрирован!");
+        }
         final String JWT = jwtComponent.generateJwtToken(request.getUserName());
 
         return JwtDTO.builder()
@@ -76,5 +91,13 @@ public class AuthService {
                         .expirationDate(jwtComponent.extractExpiration(JWT))
                         .build();
 
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "login", key = "#userName"),
+            @CacheEvict(cacheNames = "register", key = "#userName")
+    })
+    public void logout(String userName) {
+        SecurityContextHolder.clearContext();
     }
 }

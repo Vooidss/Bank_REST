@@ -144,7 +144,6 @@ public class CardService {
         return bankCards.map(bankCardMapper::toDto);
     }
 
-    @Cacheable(value="bankCardsUserAll", key = "#userService.getCurrentUser().id")
     public List<BankCardDTO> getAllCurrentUser() {
         Long userId = userService.getCurrentUser().getId();
         List<BankCard> bankCards = cardRepository.findAllByOwnerId(userId);

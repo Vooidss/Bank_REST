@@ -9,24 +9,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 public class MyUserDetails implements UserDetails, CredentialsContainer {
-
     private final User user;
+
+    private String password;
 
     public MyUserDetails(User user) {
         this.user = user;
+        this.password = user.getPassword();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(String.format("ROLE_%s",role.getRoleName())))
+        return user.getRoles().stream()
+                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getRoleName()))
                 .toList();
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override
@@ -40,6 +41,7 @@ public class MyUserDetails implements UserDetails, CredentialsContainer {
 
     @Override
     public void eraseCredentials() {
-        user.setPassword(null);
+        this.password = null;
     }
+
 }

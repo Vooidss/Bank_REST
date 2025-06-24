@@ -214,7 +214,7 @@
                 <configuration>
                     <propertyFile>${project.build.outputDirectory}/liquibase-maven-plugin.properties</propertyFile>
                     <systemProperties>
-                        <user.name>your_liquibase_username</user.name>
+                        <user.name>liquibase</user.name>
                     </systemProperties>
                     <logging>info</logging>
 

@@ -131,7 +131,7 @@ class CardControllerImplTest {
     @Test
     @DisplayName("DELETE /api/v1/cards/{id} → 200 + пустой ответ")
     void delete_Success() throws Exception {
-        // cardService.delete не возвращает ничего
+
         mvc.perform(delete("/api/v1/cards/42"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Банковская кароточка успещно удалена!"));

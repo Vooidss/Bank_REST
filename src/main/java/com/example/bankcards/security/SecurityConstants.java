@@ -5,7 +5,8 @@ public final class SecurityConstants {
     private SecurityConstants() {}
 
     public static final String[] PUBLIC_PATHS = {
-            "/api/v1/auth/**",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
             "/v3/api-docs.yaml/**",
             "/v3/api-docs/**",
             "/docs/openapi.yaml",

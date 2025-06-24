@@ -47,7 +47,6 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
     }
 
-    @Cacheable(cacheNames = "currentUser")
     public User getCurrentUser(){
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         return getUserByUsername(userName);
@@ -69,7 +68,9 @@ public class UserService {
     @CacheEvict(value = {
             "user",
             "users",
-            "currentUser"
+            "currentUser",
+            "login",
+            "register"
     }, allEntries = true)
     public void delete(Long id) {
         try{
@@ -115,7 +116,9 @@ public class UserService {
     @CacheEvict(value = {
             "user",
             "users",
-            "currentUser"
+            "currentUser",
+            "login",
+            "register"
     }, allEntries = true)
     public UserDTO update(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id)
@@ -125,9 +128,6 @@ public class UserService {
 
         if (userDTO.getUsername() != null) {
             user.setUsername(userDTO.getUsername());
-        }
-        if (userDTO.getRole() != null) {
-            user.getRoles().add(userDTO.getRole());
         }
         if (userDTO.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(userDTO.getPassword()));

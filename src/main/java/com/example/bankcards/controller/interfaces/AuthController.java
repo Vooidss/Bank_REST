@@ -1,6 +1,7 @@
 package com.example.bankcards.controller.interfaces;
 
 import com.example.bankcards.dto.Requests.LoginRequest;
+import com.example.bankcards.dto.Requests.LogoutRequest;
 import com.example.bankcards.dto.Requests.RegisterRequest;
 import com.example.bankcards.dto.Responses.JwtResponse;
 import com.example.bankcards.dto.Responses.Response;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication", description = "Операции по входу в систему")
 public interface AuthController {
+
     @Operation(
             summary = "Логин пользователя",
             description = "Принимает логин и пароль, возвращает JWT-токен",
@@ -48,7 +51,7 @@ public interface AuthController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "Успешный вход",
+                            description = "Успешная регистрация",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = JwtResponse.class)
@@ -56,7 +59,7 @@ public interface AuthController {
                     ),
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Не хватает либо логина либо пароля",
+                            description = "Не хватает логина или пароля",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = Response.class)
@@ -66,4 +69,31 @@ public interface AuthController {
     )
     @PostMapping("/register")
     ResponseEntity<JwtResponse> register(@RequestBody RegisterRequest request);
+
+    @Operation(
+            summary = "Выход из системы",
+            description = "Принимает имя пользователя и выполняет выход, очищая кеши и контекст безопасности",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Успешный выход",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Response.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Доступ запрещён: попытка выхода за другого пользователя",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Response.class)
+                            )
+                    )
+            }
+    )
+    @PostMapping("/logout")
+    @PreAuthorize("#request.getUsername() == authentication.principal.username")
+    ResponseEntity<Response<Void>> logout(@RequestBody LogoutRequest request);
+
 }

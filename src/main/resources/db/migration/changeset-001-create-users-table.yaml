@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 001-create-users-table
-      author: egorick
+      id: "1"
+      author: "egorick"
       changes:
         - createTable:
             tableName: users
@@ -12,6 +12,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
+                    nullable: false
               - column:
                   name: password
                   type: VARCHAR(255)
@@ -22,3 +23,4 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
+                    unique: true
