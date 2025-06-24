@@ -5,15 +5,22 @@ import com.example.bankcards.dto.Responses.TransferResponse;
 import com.example.bankcards.dto.Responses.TransfersResponse;
 import com.example.bankcards.dto.TransferUserDto;
 import com.example.bankcards.entity.bankcard.BankCard;
+import com.example.bankcards.entity.bankcard.Status;
 import com.example.bankcards.entity.transfer.Transfer;
 import com.example.bankcards.entity.transfer.TransferStatus;
 import com.example.bankcards.entity.user.User;
 import com.example.bankcards.exception.CardAccessDeniedException;
+import com.example.bankcards.exception.InactiveCardException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.exception.TransferNotFoundException;
 import com.example.bankcards.mappers.BankCardMapper;
 import com.example.bankcards.mappers.TransferMapper;
 import com.example.bankcards.mappers.UserMapper;
+import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransferRepository;
+import com.example.bankcards.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,39 +32,37 @@ import java.math.BigDecimal;
 public class TransferService {
 
     private final CardService cardService;
-    private final UserService userService;
-    private final BankCardMapper bankCardMapper;
-    private final UserMapper userMapper;
     private final TransferMapper transferMapper;
     private final TransferRepository transferRepository;
+    private final CardRepository cardRepository;
+    private final UserRepository userRepository;
 
-    public TransferService(CardService cardService, UserService userService, BankCardMapper bankCardMapper, UserMapper userMapper, TransferMapper transferMapper, TransferRepository transferRepository) {
+    public TransferService(CardService cardService, TransferMapper transferMapper, TransferRepository transferRepository, CardRepository cardRepository, UserRepository userRepository) {
         this.cardService = cardService;
-        this.userService = userService;
-        this.bankCardMapper = bankCardMapper;
-        this.userMapper = userMapper;
         this.transferMapper = transferMapper;
         this.transferRepository = transferRepository;
+        this.cardRepository = cardRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
+    @CacheEvict(value = "allTransfers", allEntries = true)
     public TransferUserDto transferFromToCardUser(Long userId, TransferUserRequest request) {
-
         Long fromCardId = request.getFromCardId();
-        Long toCardId = request.getToCardId();
+        Long toCardId   = request.getToCardId();
         BigDecimal amount = request.getAmount();
 
-        if (!cardService.isOwnerCard(userId, fromCardId)) {
-            throw new CardAccessDeniedException("Карта-отправитель вам не принадлежит");
+        BankCard fromCard = cardRepository.findById(fromCardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Карта-отправитель не найдена"));
+        BankCard toCard   = cardRepository.findById(toCardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Карта-получатель не найдена"));
+
+        if(!(fromCard.getStatus().equals(Status.ACTIVE) && toCard.getStatus().equals(Status.ACTIVE))){
+            throw new InactiveCardException("Обе карты должны быть актевированы");
         }
 
-        if (!cardService.isOwnerCard(userId, toCardId)) {
-            throw new CardAccessDeniedException("Карта-получатель вам не принадлежит");
-        }
-
-        BankCard fromCard = bankCardMapper.toEntity(cardService.getById(fromCardId));
-        BankCard toCard = bankCardMapper.toEntity(cardService.getById(toCardId));
-        User initiator = userMapper.toEntity(userService.getUserById(userId));
+        User initiator    = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
 
         Transfer transfer = Transfer.builder()
                 .fromCard(fromCard)
@@ -66,7 +71,7 @@ public class TransferService {
                 .amount(amount)
                 .build();
 
-        transferRepository.save(transfer);
+        transfer = transferRepository.save(transfer);
 
         try {
             cardService.withdraw(fromCardId, amount);
@@ -74,13 +79,15 @@ public class TransferService {
             transfer.setStatus(TransferStatus.COMPLETED);
         } catch (RuntimeException ex) {
             transfer.setStatus(TransferStatus.CANCELLED);
+            transferRepository.save(transfer);
             throw ex;
         }
 
-        transferRepository.save(transfer);
+        transfer = transferRepository.save(transfer);
         return transferMapper.toDto(transfer);
     }
 
+    @Cacheable(value = "allTransfers", key = "#pageNumber + '-' + #pageSize")
     public Page<TransferUserDto> getAll(int pageNumber, int pageSize) {
 
         Page<Transfer> transfers = transferRepository.findAll(PageRequest.of(pageNumber, pageSize));
@@ -88,11 +95,20 @@ public class TransferService {
         return transfers.map(transferMapper::toDto);
     }
 
+    @Cacheable(value = "transfer", key = "#id")
     public TransferUserDto getById(Long id) {
 
         Transfer transfer = transferRepository.findById(id)
                 .orElseThrow(() -> new TransferNotFoundException(String.format("Перевода с id %d не найден", id)));
 
         return transferMapper.toDto(transfer);
+    }
+
+    @Cacheable(value = "allTransfersUser", key = "#pageNumber + '-' + #pageSize + '-' + #userId")
+    public Page<TransferUserDto> getAllByUser(int pageNumber, int pageSize, Long userId) {
+
+        Page<Transfer> transfers = transferRepository.findAllByInitiatorId(userId,PageRequest.of(pageNumber, pageSize));
+
+        return transfers.map(transferMapper::toDto);
     }
 }

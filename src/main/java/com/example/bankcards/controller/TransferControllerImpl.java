@@ -38,6 +38,13 @@ public class TransferControllerImpl implements TransferController {
     }
 
     @Override
+    public ResponseEntity<TransfersResponse> getAllBylUser(int pageNumber, int pageSize, Long userId) {
+        Page<TransferUserDto> transfers = transferService.getAllByUser(pageNumber, pageSize, userId);
+
+        return ResponseEntity.ok().body(new TransfersResponse(transfers, "Все карты пользователя получены", HttpStatus.OK));
+    }
+
+    @Override
     public ResponseEntity<TransferResponse> getById(Long id) {
 
         TransferUserDto transfer = transferService.getById(id);

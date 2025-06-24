@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   postgres:
@@ -47,19 +46,20 @@ services:
     ports:
       - "8060:8060"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
-      CARD_SECRET: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
-      JWT_SECRET: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/BankRest
+      CARD_SECRET: bf7c68b9cade5c7dd4524e955cb15710fe51c76754d0c8d5933a6747d5ed77147da465b61d33ea11fa6f8983e4b8d81c2c8fc7ca72c4ea1dfca4835a6ad2f25d
+      JWT_SECRET: TXlTdXBlcktleUNhcmRGb3JCYW5rc2xz
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/BankRest
       SPRING_DATASOURCE_USERNAME: BankRest
       SPRING_DATASOURCE_PASSWORD: BankRest
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_JPA_SHOW_SQL: "true"
     networks:
       - bank-network
 
 volumes:
-  db-data:
+  postgres_data: {}
+  pgadmin_data: {}
+  postgres: {}
 
 networks:
   bank-network:

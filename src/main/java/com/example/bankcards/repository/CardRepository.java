@@ -1,6 +1,7 @@
 package com.example.bankcards.repository;
 
 import com.example.bankcards.entity.bankcard.BankCard;
+import com.example.bankcards.entity.block.CardRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

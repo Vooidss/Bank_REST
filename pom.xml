@@ -69,6 +69,11 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>4.32.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -80,12 +85,19 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -114,6 +126,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -138,6 +151,9 @@
                             <version>0.2.0</version>
                         </dependency>
                     </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
@@ -179,6 +195,41 @@
                     <outputFileName>openapi.yaml</outputFileName>
                     <outputDir>${project.build.directory}/docs</outputDir>
                     <outputDir>docs</outputDir>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.27.0</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.liquibase.ext</groupId>
+                        <artifactId>liquibase-hibernate5</artifactId>
+                        <version>4.27.0</version>
+                    </dependency>
+                </dependencies>
+
+                <configuration>
+                    <propertyFile>${project.build.outputDirectory}/liquibase-maven-plugin.properties</propertyFile>
+                    <systemProperties>
+                        <user.name>your_liquibase_username</user.name>
+                    </systemProperties>
+                    <logging>info</logging>
+
+                    <referenceUrl>
+                        hibernate:spring: com.example.bankcards.entity?dialect=org.hibernate.dialect.PostgreSQLDialect
+                    </referenceUrl>
+
+                    <url>jdbc:postgresql://localhost:5432/BankRest</url>
+                    <username>BankRest</username>
+                    <password>BankRest</password>
+                    <driver>com.mysql.cj.jdbc.Driver</driver>
+
+                    <diffChangeLogFile>
+                        src/main/resources/db/migration/db.changelog-initial-hibernate.yaml
+                    </diffChangeLogFile>
                 </configuration>
             </plugin>
         </plugins>

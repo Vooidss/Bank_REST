@@ -20,7 +20,7 @@ public class MyUserDetails implements UserDetails, CredentialsContainer {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles()
                 .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
+                .map(role -> new SimpleGrantedAuthority(String.format("ROLE_%s",role.getRoleName())))
                 .toList();
     }
 
@@ -32,6 +32,10 @@ public class MyUserDetails implements UserDetails, CredentialsContainer {
     @Override
     public String getUsername() {
         return user.getUsername();
+    }
+
+    public Long getId() {
+        return user.getId();
     }
 
     @Override

@@ -1,21 +1,21 @@
 spring:
   application:
     name: BankRest
-  profiles:
-    active: dev
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/BankRest
+    username: BankRest
+    password: BankRest
     driver-class-name: org.postgresql.Driver
   jpa:
-    show-sql: ${SPRING_JPA_SHOW_SQL}
+    show-sql: true
     database: postgresql
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:db/migration/db.changelog-master.yaml
   web:
     resources:
       static-locations:
@@ -28,14 +28,21 @@ server:
 
 auth:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: "bf7c68b9cade5c7dd4524e955cb15710fe51c76754d0c8d5933a6747d5ed77147da465b61d33ea11fa6f8983e4b8d81c2c8fc7ca72c4ea1dfca4835a6ad2f25d"
     expiration: 3600000
 
 card:
-  secretKey: ${CARD_SECRET}
+  secretKey: "TXlTdXBlcktleUNhcmRGb3JCYW5rc2xz"
 
 springdoc:
   swagger-ui:
     url: /v3/api-docs.yaml
+
+liquibase:
+  change-log: classpath:db/migration/db.changelog-master.yaml
+  contexts: development, production
+  default-schema: public
+  drop-first: false
+  enabled: true
 
 

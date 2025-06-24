@@ -1,6 +1,7 @@
 package com.example.bankcards.config;
 
 import com.example.bankcards.entity.user.Role;
+import com.example.bankcards.security.RestAccessDeniedHandler;
 import com.example.bankcards.security.RestAuthenticationEntryPoint;
 import com.example.bankcards.security.SecurityConstants;
 import com.example.bankcards.security.filters.JwtAuthenticationFilter;
@@ -9,10 +10,12 @@ import com.example.bankcards.service.UserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,18 +28,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true,  prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailService userDetailService;
     private final RestAuthenticationEntryPoint restAuthEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailService userDetailService, RestAuthenticationEntryPoint restAuthEntryPoint) {
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailService userDetailService, RestAuthenticationEntryPoint restAuthEntryPoint, RestAccessDeniedHandler accessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailService = userDetailService;
         this.restAuthEntryPoint = restAuthEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -53,9 +59,10 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         )
                         .authenticationProvider(customAuthenticationProvider())
-//                        .exceptionHandling(ex -> ex
-//                                .authenticationEntryPoint(restAuthEntryPoint)
-//                        )
+                        .exceptionHandling(ex -> ex
+                                .authenticationEntryPoint(restAuthEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler)
+                        )
                         .addFilterBefore(
                                 jwtAuthenticationFilter,
                                 UsernamePasswordAuthenticationFilter.class
@@ -82,5 +89,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

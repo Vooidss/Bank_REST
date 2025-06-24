@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-block-requests
+      author: egorick
+      preConditions:
+        onFail: HALT
+      changes:
+        - createTable:
+            tableName: block_requests
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_block_requests
+                    nullable: false
+              - column:
+                  name: message
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: requested_at
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: "PENDING"
+                  constraints:
+                    nullable: false
+                    checkConstraint: "status IN ('PENDING','APPROVED','REJECTED')"
+              - column:
+                  name: card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_block_requests_bank_card
+            baseTableName: block_requests
+            baseColumnNames: card_id
+            referencedTableName: bank_card
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - sql:
+            splitStatements: false
+            sql: |
+              ALTER TABLE block_requests
+                OWNER TO "BankRest";
+
+  - changeSet:
+      id: 006-create-block-requests-indexes
+      author: egorick
+      changes:
+        - createIndex:
+            indexName: idx_block_requests_status
+            tableName: block_requests
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_block_requests_card_id
+            tableName: block_requests
+            columns:
+              - column:
+                  name: card_id

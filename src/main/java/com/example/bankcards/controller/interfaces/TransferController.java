@@ -54,6 +54,15 @@ public interface TransferController {
                                     schema    = @Schema(implementation = Response.class)
                             )
                     )
+                    ,
+                    @ApiResponse(
+                            responseCode = "409",
+                            description  = "Обе карты должны быть активированы",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    )
             }
     )
     @PostMapping("/user/{userId}")
@@ -86,10 +95,41 @@ public interface TransferController {
             }
     )
     @GetMapping("/all")
-    @Secured("ADMIN")
+    @Secured("ROLE_ADMIN")
     ResponseEntity<TransfersResponse> getAll(
             @RequestParam(name = "page", defaultValue = "0") int pageNumber,
             @RequestParam(name = "size", defaultValue = "5") int pageSize
+    );
+
+
+    @Operation(
+            summary     = "Получить все переводы пользователя",
+            description = "Возвращает страницу списка всех переводов, выполненных данным пользователем.",
+            responses   = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Список переводов успешно получен",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = TransfersResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description  = "Доступ запрещён: попытка получить переводы другого пользователя",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    )
+            }
+    )
+    @GetMapping("/by-user/{userId}")
+    @PreAuthorize("#userId == authentication.principal.id")
+    ResponseEntity<TransfersResponse> getAllBylUser(
+            @RequestParam(name = "page", defaultValue = "0") int pageNumber,
+            @RequestParam(name = "size", defaultValue = "5") int pageSize,
+            @PathVariable("userId") Long userId
     );
 
     @Operation(
@@ -123,7 +163,7 @@ public interface TransferController {
             }
     )
     @GetMapping("/{id}")
-    @Secured("ADMIN")
+    @Secured("ROLE_ADMIN")
     ResponseEntity<TransferResponse> getById(@PathVariable Long id);
 
 }

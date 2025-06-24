@@ -1,7 +1,8 @@
 package com.example.bankcards.exception;
 
-import org.springframework.security.core.AuthenticationException;
+import com.example.bankcards.exception.api.BadRequestException;
+import com.example.bankcards.exception.api.UnauthorizedException;
 
-public class JwtAuthenticationException extends AuthenticationException  {
+public class JwtAuthenticationException extends UnauthorizedException {
     public JwtAuthenticationException(String msg) { super(msg); }
 }

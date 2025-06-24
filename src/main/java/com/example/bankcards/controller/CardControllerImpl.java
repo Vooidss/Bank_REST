@@ -5,16 +5,12 @@ import com.example.bankcards.controller.interfaces.CardController;
 import com.example.bankcards.dto.BankCardDTO;
 import com.example.bankcards.dto.CardBalanceDto;
 import com.example.bankcards.dto.Requests.CreateCardRequest;
-import com.example.bankcards.dto.Responses.BalanceResponse;
-import com.example.bankcards.dto.Responses.CardResponse;
-import com.example.bankcards.dto.Responses.CardsResponse;
-import com.example.bankcards.dto.Responses.Response;
+import com.example.bankcards.dto.Requests.ReplenishRequest;
+import com.example.bankcards.dto.Responses.*;
 import com.example.bankcards.service.CardService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,9 +29,16 @@ public class CardControllerImpl implements CardController {
     }
 
     @Override
-    public ResponseEntity<CardsResponse> getAllCurrentUser(int pageNumber, int pageSize, Long id) {
-        Page<BankCardDTO> bankCards = cardService.getAllCurrentUser(pageNumber, pageSize);
+    public ResponseEntity<CardsResponse> getAllCurrentUser(Long id,int pageNumber, int pageSize) {
+        Page<BankCardDTO> bankCards = cardService.getAllCurrentUser(pageNumber, pageSize, id);
         return ResponseEntity.ok().body(new CardsResponse(bankCards, "Ваши банковские карты успешно получены!", HttpStatus.OK));
+    }
+
+    @Override
+    public ResponseEntity<CardResponse> getById(Long id) {
+        BankCardDTO bankCardDTO = cardService.getById(id);
+
+        return ResponseEntity.ok().body(new CardResponse(bankCardDTO, "Банковская карточка получена!", HttpStatus.OK));
     }
 
     @Override
@@ -43,6 +46,7 @@ public class CardControllerImpl implements CardController {
             BankCardDTO bankCardDTO = cardService.create(request);
         return ResponseEntity.ok().body(new CardResponse(bankCardDTO, "Банковская кароточка успещно создана!", HttpStatus.OK));
     }
+
 
     @Override
     public ResponseEntity<CardResponse> blocked(Long id) {
@@ -66,6 +70,13 @@ public class CardControllerImpl implements CardController {
     @Override
     public ResponseEntity<BalanceResponse> getBalance(Long userId, Long cardId) {
         CardBalanceDto balance = cardService.getBalance(userId, cardId);
-        return ResponseEntity.ok().body(new BalanceResponse( balance, "Банковская кароточка успещно удалена!", HttpStatus.OK));
+        return ResponseEntity.ok().body(new BalanceResponse( balance, "Баланс карточки успешно получен!", HttpStatus.OK));
+    }
+
+    @Override
+    public ResponseEntity<BalanceResponse> replenish(Long id, ReplenishRequest request) {
+        CardBalanceDto balance = cardService.deposit(id ,request.getAmount());
+
+        return ResponseEntity.ok().body(new BalanceResponse( balance, "Банковская карта пополнена!", HttpStatus.OK));
     }
 }

@@ -40,7 +40,7 @@ public interface AuthController {
             }
     )
     @PostMapping("/login")
-    ResponseEntity<Response> login(@RequestBody LoginRequest request);
+    ResponseEntity<JwtResponse> login(@RequestBody LoginRequest request);
 
     @Operation(
             summary = "Регистрация пользователя",
@@ -65,5 +65,5 @@ public interface AuthController {
             }
     )
     @PostMapping("/register")
-    ResponseEntity<Response> register(@RequestBody RegisterRequest request);
+    ResponseEntity<JwtResponse> register(@RequestBody RegisterRequest request);
 }

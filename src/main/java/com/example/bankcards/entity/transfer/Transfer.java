@@ -42,6 +42,7 @@ public class Transfer {
     private BigDecimal amount;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TransferStatus status;
 
     @Column(nullable = false, updatable = false)

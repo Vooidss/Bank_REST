@@ -1,0 +1,46 @@
+  databaseChangeLog:
+    - changeSet:
+        id: 003-create-bank-card-table
+        author: egorick
+        changes:
+          - createTable:
+              tableName: bank_card
+              columns:
+                - column:
+                    name: id
+                    type: BIGINT
+                    autoIncrement: true
+                    constraints:
+                      primaryKey: true
+                - column:
+                    name: balance
+                    type: NUMERIC(38,2)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: card_number
+                    type: VARCHAR(255)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: expiration_date
+                    type: DATE
+                    constraints:
+                      nullable: false
+                - column:
+                    name: status
+                    type: SMALLINT
+                    constraints:
+                      nullable: false
+                      checkConstraint: "status >= 0 AND status <= 2"
+                - column:
+                    name: owner_id
+                    type: BIGINT
+                    constraints:
+                      nullable: false
+          - addForeignKeyConstraint:
+              constraintName: fk_bank_card_owner
+              baseTableName: bank_card
+              baseColumnNames: owner_id
+              referencedTableName: users
+              referencedColumnNames: id

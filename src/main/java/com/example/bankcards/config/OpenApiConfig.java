@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
     public GroupedOpenApi cardApi() {
         return GroupedOpenApi.builder()
                 .group("card")
-                .pathsToMatch("/api/v1/card/**")
+                .pathsToMatch("/api/v1/cards/**")
                 .build();
     }
 
@@ -58,6 +58,14 @@ import org.springframework.context.annotation.Configuration;
         return GroupedOpenApi.builder()
                 .group("transfer")
                 .pathsToMatch("/api/v1/transfer/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi cardRequestApi() {
+        return GroupedOpenApi.builder()
+                .group("card requests")
+                .pathsToMatch("/api/v1/card-request/**")
                 .build();
     }
 }

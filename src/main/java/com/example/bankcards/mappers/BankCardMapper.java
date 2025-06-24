@@ -12,11 +12,11 @@ import org.mapstruct.Named;
 public interface BankCardMapper {
 
     @Mapping(source = "owner.id", target = "ownerId")
-    @Mapping(source = "cardNumber", target = "expirationDate")
+    @Mapping(source = "id", target = "cardId")
     BankCardDTO toDto(BankCard card);
 
     @Mapping(source = "ownerId", target = "owner", qualifiedByName = "ownerIdToUser")
-    @Mapping(source = "expirationDate", target = "cardNumber")
+    @Mapping(source = "cardId", target = "id")
     BankCard toEntity(BankCardDTO dto);
 
     @Named("ownerIdToUser")

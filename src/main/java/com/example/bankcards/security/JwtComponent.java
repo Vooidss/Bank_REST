@@ -1,19 +1,27 @@
 package com.example.bankcards.security;
 
+import com.example.bankcards.exception.EmptyTokenException;
+import com.example.bankcards.exception.InvalidTokenException;
+import com.example.bankcards.exception.TokenExpiredException;
 import com.example.bankcards.util.DecoderKey;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.SecretKey;
+import java.security.SignatureException;
 import java.util.Date;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class JwtComponent {
 
     @Value("${auth.jwt.secret}")
@@ -33,7 +41,7 @@ public class JwtComponent {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
                 .signWith(key)
                 .compact();
     }
@@ -50,8 +58,8 @@ public class JwtComponent {
     }
 
     public void checkTokenOnEmpty(String token) {
-        if (token.isEmpty()) {
-            throw new RuntimeException("Токен пустой");
+        if (token == null || token.isBlank()) {
+            throw new EmptyTokenException("Токен пустой");
         }
     }
 
@@ -64,11 +72,18 @@ public class JwtComponent {
     }
 
     public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Срок действия токена истёк. Пожалуйста, авторизуйтесь заново");
+        } catch (MalformedJwtException | IllegalArgumentException e) {
+            log.error(e.getMessage());
+            throw new InvalidTokenException("Недействительный токен");
+        }
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

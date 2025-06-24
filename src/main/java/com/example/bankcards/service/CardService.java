@@ -5,11 +5,15 @@ import com.example.bankcards.dto.CardBalanceDto;
 import com.example.bankcards.dto.Requests.CreateCardRequest;
 import com.example.bankcards.entity.bankcard.BankCard;
 import com.example.bankcards.entity.bankcard.Status;
+import com.example.bankcards.entity.block.CardRequestStatus;
 import com.example.bankcards.entity.user.User;
 import com.example.bankcards.exception.CardNotFoundException;
+import com.example.bankcards.exception.InactiveCardException;
 import com.example.bankcards.exception.InsufficientFundsException;
+import com.example.bankcards.exception.StatusAlreadySetException;
 import com.example.bankcards.mappers.BankCardBalanceMapper;
 import com.example.bankcards.mappers.BankCardMapper;
+import com.example.bankcards.repository.CardRequestRepository;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CardEncryptionUtil;
@@ -25,23 +29,26 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 public class CardService {
 
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
+
     private final BankCardMapper bankCardMapper;
     private final BankCardBalanceMapper bankCardBalanceMapper;
+
     private final CardEncryptionUtil cardEncryptionUtil;
     private final UserService userService;
+    private final CardRequestService cardRequestService;
 
-    public CardService(CardRepository cardRepository, UserRepository userRepository, BankCardMapper bankCardMapper, BankCardBalanceMapper bankCardBalanceMapper, CardEncryptionUtil cardEncryptionUtil, UserService userService) {
+    public CardService(CardRepository cardRepository, UserRepository userRepository, BankCardMapper bankCardMapper, BankCardBalanceMapper bankCardBalanceMapper, CardEncryptionUtil cardEncryptionUtil, UserService userService, CardRequestService cardRequestService) {
         this.cardRepository = cardRepository;
         this.userRepository = userRepository;
         this.bankCardMapper = bankCardMapper;
         this.bankCardBalanceMapper = bankCardBalanceMapper;
         this.cardEncryptionUtil = cardEncryptionUtil;
         this.userService = userService;
+        this.cardRequestService = cardRequestService;
     }
 
     @Transactional
@@ -55,7 +62,6 @@ public class CardService {
         String cardNumber = CardNumberGenerator.generateCardNumber();
         String encrypt = cardEncryptionUtil.encrypt(cardNumber);
         String maskCardNumber = cardEncryptionUtil.maskEncrypted(encrypt);
-        System.out.println(maskCardNumber);
 
         BankCard card = new BankCard();
 
@@ -78,8 +84,14 @@ public class CardService {
             "bankCardsUserAll",
             "bankCards"
     }, allEntries = true)
+    @Transactional
     public BankCardDTO blocked(Long id) {
-            return changeStatusCard(Status.BLOCKED, id);
+
+        BankCardDTO bankCardDTO = changeStatusCard(Status.BLOCKED, id);
+
+        cardRequestService.changeStatus(id, CardRequestStatus.APPROVED);
+
+        return bankCardDTO;
     }
 
     @CacheEvict(value = {
@@ -87,6 +99,7 @@ public class CardService {
             "bankCardsUserAll",
             "bankCards"
     }, allEntries = true)
+    @Transactional
     public BankCardDTO activate(Long id) {
             return changeStatusCard(Status.ACTIVE, id);
     }
@@ -105,20 +118,23 @@ public class CardService {
     }
 
     @Transactional
-    protected BankCardDTO changeStatusCard(Status status, Long id){
+    public BankCardDTO changeStatusCard(Status status, Long id){
 
             BankCard card = cardRepository.findById(id)
                     .orElseThrow(() -> new CardNotFoundException("Карта с таким ID не найдена"));
 
+            if(card.getStatus().equals(status)){
+                throw new StatusAlreadySetException(String.format("Карта уже %s",status.getStatus().toLowerCase()));
+            }
+
             card.setStatus(status);
-            cardRepository.save(card);
+            card = cardRepository.save(card);
 
         return bankCardMapper.toDto(card);
     }
 
-    @Cacheable(value = "bankCardsUser", key = "#pageNumber + '-' + #pageSize")
-    public Page<BankCardDTO> getAllCurrentUser(int pageNumber, int pageSize) {
-        Long userId = userService.getCurrentUser().getId();
+    @Cacheable(value = "bankCardsUser", key = "#pageNumber + '-' + #pageSize + '-' + #userId")
+    public Page<BankCardDTO> getAllCurrentUser(int pageNumber, int pageSize, Long userId) {
         Page<BankCard> bankCards = cardRepository.findAllByOwnerId(PageRequest.of(pageNumber, pageSize), userId);
 
         if(bankCards.isEmpty()){
@@ -167,14 +183,23 @@ public class CardService {
             "bankCardsUserAll",
             "bankCards"
     }, allEntries = true)
-    public void withdraw(Long cardId, BigDecimal amount) {
+    @Transactional
+    public CardBalanceDto withdraw(Long cardId, BigDecimal amount) {
         BankCard card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена"));
+
+        if(!isActivated(card)){
+            throw new InactiveCardException("Карта должна быть активирована");
+        }
+
         if (card.getBalance().compareTo(amount) < 0) {
             throw new InsufficientFundsException("Недостаточно средств");
         }
+
         card.setBalance(card.getBalance().subtract(amount));
-        cardRepository.save(card);
+        card = cardRepository.save(card);
+
+        return bankCardBalanceMapper.toDto(card);
     }
 
     @CacheEvict(value = {
@@ -182,11 +207,20 @@ public class CardService {
             "bankCardsUserAll",
             "bankCards"
     }, allEntries = true)
-    public void deposit(Long cardId, BigDecimal amount) {
+    @Transactional
+    public CardBalanceDto deposit(Long cardId, BigDecimal amount) {
         BankCard card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена"));
+
+        if(!isActivated(card)){
+            throw new InactiveCardException("Карта должна быть активирована");
+        }
+
         card.setBalance(card.getBalance().add(amount));
-        cardRepository.save(card);
+
+        card = cardRepository.save(card);
+
+        return bankCardBalanceMapper.toDto(card);
     }
 
     public CardBalanceDto getBalance(Long userId, Long cardId) {
@@ -195,5 +229,9 @@ public class CardService {
                 .orElseThrow(() -> new CardNotFoundException("Пользователя с такой картой не существует"));
 
         return bankCardBalanceMapper.toDto(card);
+    }
+
+    public boolean isActivated(BankCard bankCard){
+        return bankCard.getStatus().equals(Status.ACTIVE);
     }
 }

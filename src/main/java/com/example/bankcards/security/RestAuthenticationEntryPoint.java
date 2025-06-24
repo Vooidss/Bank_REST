@@ -17,33 +17,17 @@ import java.util.Map;
 
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    private final ObjectMapper mapper = new ObjectMapper();
-
     @Override
-    public void commence(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException authException
-    ) throws IOException {
-        response.setStatus(HttpStatus.FORBIDDEN.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+    public void commence(HttpServletRequest req,
+                         HttpServletResponse resp,
+                         AuthenticationException authEx)
+            throws IOException {
+        resp.setStatus(HttpStatus.UNAUTHORIZED.value());
+        resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        resp.setCharacterEncoding("UTF-8");
 
-        String msg;
-        if (authException instanceof JwtAuthenticationException) {
-            msg = authException.getMessage();
-        } else if (authException instanceof InsufficientAuthenticationException) {
-            msg = "JWT токен отсутствует или неверный формат";
-        } else {
-            msg = authException.getMessage();
-        }
-
-        var body = Map.<String,Object>of(
-                "message", msg,
-                "code", HttpStatus.FORBIDDEN.value()
-        );
-
-        mapper.writeValue(response.getWriter(), body);
+        String body = "{\"error\":\"Необходима аутентификация\",\"message\":\""
+                + authEx.getMessage() + "\"}";
+        resp.getWriter().write(body);
     }
 }

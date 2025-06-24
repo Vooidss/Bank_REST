@@ -23,7 +23,9 @@ public final class SecurityConstants {
             "/api/v1/user/{id}",
             "/api/v1/user/all",
             "/api/v1/transfer/{id}",
-            "/api/v1/transfer/all"
+            "/api/v1/transfer/all",
+            "/api/v1/card-request/rejected/{id}",
+            "/api/v1/card-request/all",
     };
 
 }

@@ -1,8 +1,7 @@
 package com.example.bankcards.controller.interfaces;
 
-import com.example.bankcards.dto.Responses.Response;
-import com.example.bankcards.dto.Responses.TotalBalanceResponse;
-import com.example.bankcards.dto.Responses.UsersResponse;
+import com.example.bankcards.dto.Responses.*;
+import com.example.bankcards.dto.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,11 +39,82 @@ public interface UserController {
             }
     )
     @GetMapping("/all")
-    @Secured("ADMIN")
+    @Secured("ROLE_ADMIN")
     ResponseEntity<UsersResponse> getAll(
             @RequestParam(name = "page", defaultValue = "0") int pageNumber,
             @RequestParam(name = "size", defaultValue = "5") int pageSize
     );
+
+    @Operation(
+            summary     = "Получить пользователя по ID",
+            description = "Возвращает данные пользователя по его уникальному идентификатору (только для администратора)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Пользователь найден",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = UserResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description  = "Доступ запрещён: недостаточно прав",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description  = "Пользователь с указанным ID не найден",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    )
+            }
+    )
+    @GetMapping("/{id}")
+    @Secured("ROLE_ADMIN")
+    ResponseEntity<UserResponse> getId(@PathVariable Long id);
+
+    @Operation(
+            summary     = "Обновить данные пользователя",
+            description = "Обновляет информацию пользователя по его идентификатору (только для администратора)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Данные пользователя успешно обновлены",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = UserResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description  = "Доступ запрещён: недостаточно прав",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description  = "Пользователь с указанным ID не найден",
+                            content      = @Content(
+                                    mediaType = "application/json",
+                                    schema    = @Schema(implementation = Response.class)
+                            )
+                    )
+            }
+    )
+    @PatchMapping("/{id}")
+    @Secured("ROLE_ADMIN")
+    ResponseEntity<UserResponse> update(
+            @PathVariable(name = "id") Long id,
+            @RequestBody UserDTO userDTO
+            );
 
     @Operation(
             summary     = "Удалить пользователя",
